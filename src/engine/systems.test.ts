@@ -6,7 +6,7 @@ import {
   forceSystem,
   movementSystem,
   isPosition,
-} from "./core";
+} from ".";
 
 test("movement system", () => {
   const entity = entityFactory("ball");
