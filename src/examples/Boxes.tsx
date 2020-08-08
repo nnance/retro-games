@@ -14,12 +14,14 @@ export default function Boxes(): React.ReactElement {
   const engine = Engine.create();
 
   // create two boxes and a ground
-  const boxA = Bodies.rectangle(400, 200, 80, 80);
-  const boxB = Bodies.rectangle(450, 50, 80, 80);
-  const ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+  const boxA = Bodies.rectangle(500, 200, 80, 80);
+  const boxB = Bodies.rectangle(550, 50, 80, 80);
+  const ball = Bodies.circle(580,10,20, {restitution: 1});
+  const rightWall = Bodies.rectangle(800, 0, 5, 1200, { isStatic: true });
+  const ground = Bodies.rectangle(400, 600, 810, 5, { isStatic: true });
 
   // add all of the bodies to the world
-  World.add(engine.world, [boxA, boxB, ground]);
+  World.add(engine.world, [boxA, boxB, ground, ball, rightWall]);
 
   React.useEffect(() => {
     // create a renderer
