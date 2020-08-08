@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
+import Boxes from "./examples/Boxes";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Boxes />
   </React.StrictMode>,
   document.getElementById("root")
 );
