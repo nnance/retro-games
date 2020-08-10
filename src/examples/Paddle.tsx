@@ -1,5 +1,5 @@
 import React from "react";
-import { Engine, Bodies, World, Render, Body } from "matter-js";
+import { Engine, Bodies, World, Render, Events, Body } from "matter-js";
 import { useGameControls } from "../framework/controller";
 
 const offset = 10;
@@ -28,6 +28,8 @@ const buildGrid = (rows: number, cols: number): Matter.Body[] => {
 
 export default function Boxes(): React.ReactElement {
   const divRef = React.useRef<HTMLDivElement>(null);
+  const [paddleVelocity, setVelocity] = React.useState(0);
+  const engineRef = React.useRef(Engine.create());
   const bodiesRef = React.useRef({
     ball: Bodies.circle(400, 200, 10, {
       inertia: Infinity,
@@ -36,23 +38,29 @@ export default function Boxes(): React.ReactElement {
       frictionAir: 0,
       force: { x: 0.003, y: 0.003 },
     }),
-    paddle: Bodies.rectangle(450, 500, 80, 20, {isStatic: true}),
-    grid: buildGrid(2, 7)
+    paddle: Bodies.rectangle(450, 500, 80, 20, { isStatic: true }),
+    grid: buildGrid(2, 7),
   });
-  
+
   React.useEffect(() => {
     // create an engine
-    const engine = Engine.create();
-  
+    const engine = engineRef.current;
+
     engine.world.gravity.x = 0;
     engine.world.gravity.y = 0;
-  
+
     const ceiling = Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, {
       isStatic: true,
     });
-    const ground = Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, {
-      isStatic: true,
-    });
+    const ground = Bodies.rectangle(
+      400,
+      600 + offset,
+      800.5 + 2 * offset,
+      50.5,
+      {
+        isStatic: true,
+      }
+    );
     const leftSide = Bodies.rectangle(
       800 + offset,
       300,
@@ -63,7 +71,7 @@ export default function Boxes(): React.ReactElement {
     const rightSide = Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, {
       isStatic: true,
     });
-  
+
     World.add(engine.world, [
       bodiesRef.current.ball,
       bodiesRef.current.paddle,
@@ -71,7 +79,7 @@ export default function Boxes(): React.ReactElement {
       ground,
       leftSide,
       rightSide,
-      ...bodiesRef.current.grid
+      ...bodiesRef.current.grid,
     ]);
 
     // create a renderer
@@ -87,13 +95,20 @@ export default function Boxes(): React.ReactElement {
     Render.run(render);
   }, [divRef]);
 
+  const callback = React.useCallback(() => {
+    Body.translate(bodiesRef.current.paddle, { x: paddleVelocity, y: 0 });
+  }, [paddleVelocity]);
+
+  React.useEffect(() => {
+    const engine = engineRef.current;
+    Events.on(engine, "beforeUpdate", callback);
+    return () => Events.off(engine, "beforeUpdate", callback);
+  }, [callback]);
+
   useGameControls({
-    leftArrow: () => {
-      Body.translate(bodiesRef.current.paddle, {x: -5, y: 0});
-    },
-    rightArrow: () => {
-      Body.translate(bodiesRef.current.paddle, {x: 5, y: 0});
-    }
+    leftArrow: () => setVelocity(-5),
+    rightArrow: () => setVelocity(5),
+    keyUp: () => setVelocity(0),
   });
 
   return <div ref={divRef} />;
