@@ -16,6 +16,7 @@ const buildGrid = (rows: number, cols: number): Matter.Body[] => {
         height,
         {
           isStatic: true,
+          label: "brick",
         }
       );
     });
@@ -95,19 +96,35 @@ export default function Boxes(): React.ReactElement {
     Render.run(render);
   }, [divRef]);
 
-  const callback = React.useCallback(() => {
-    Body.translate(bodiesRef.current.paddle, { x: paddleVelocity, y: 0 });
+  // update paddle state before engine updates
+  React.useEffect(() => {
+    const engine = engineRef.current;
+
+    const callback = () => {
+      Body.translate(bodiesRef.current.paddle, { x: paddleVelocity, y: 0 });
+    };
+
+    Events.on(engine, "beforeUpdate", callback);
+    return () => Events.off(engine, "beforeUpdate", callback);
   }, [paddleVelocity]);
 
   React.useEffect(() => {
     const engine = engineRef.current;
-    Events.on(engine, "beforeUpdate", callback);
-    return () => Events.off(engine, "beforeUpdate", callback);
-  }, [callback]);
+    const callback = (events: Matter.IEventCollision<Engine>) => {
+      const pairs = events.pairs;
+      pairs.forEach(pair => {
+        if (pair.bodyA.label === "brick") World.remove(engine.world, pair.bodyA);
+        if (pair.bodyB.label === "brick") World.remove(engine.world, pair.bodyB);
+      });
+    };
+
+    Events.on(engine, "collisionEnd", callback);
+    return () => Events.off(engine, "collisionEnd", callback);
+  }, []);
 
   useGameControls({
-    leftArrow: () => setVelocity(-5),
-    rightArrow: () => setVelocity(5),
+    leftArrow: () => setVelocity(-7),
+    rightArrow: () => setVelocity(7),
     keyUp: () => setVelocity(0),
   });
 
