@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import Example from "./examples/MatterContext";
+import Example from "./examples/PaddleSVG";
 
 ReactDOM.render(
   <React.StrictMode>
