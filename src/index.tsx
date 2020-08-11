@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import Paddle from "./examples/Paddle";
+import Example from "./examples/MatterContext";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Paddle />
+    <Example />
   </React.StrictMode>,
   document.getElementById("root")
 );
