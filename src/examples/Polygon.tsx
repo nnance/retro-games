@@ -40,7 +40,7 @@ function Board(
   );
 }
 
-export default function PaddleSVG(): React.ReactElement {
+export default function Polygon(): React.ReactElement {
   const Height = window.innerHeight - 20;
   const Width = window.innerWidth - 10;
 

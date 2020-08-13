@@ -1,32 +1,11 @@
 import React from "react";
-import { Engine, World, Bodies, Events, Composite } from "matter-js";
-
-const EngineContext = React.createContext(Engine.create());
-const BodyContext = React.createContext<
-  [Matter.Body[], React.Dispatch<React.SetStateAction<Matter.Body[]>>]
->([[], () => undefined]);
-
-const useBodyContext = () => {
-  const engine = React.useContext(EngineContext);
-  const [, setBodies] = React.useContext(BodyContext);
-
-  React.useEffect(() => {
-    const afterUpdate = () => {
-      setBodies(Composite.allBodies(engine.world));
-    };
-
-    Events.on(engine, "afterUpdate", afterUpdate);
-    return () => Events.off(engine, "afterUpdate", afterUpdate);
-  }, [engine, setBodies]);
-};
-
-const useRegisterBody = (body: React.MutableRefObject<Matter.Body>) => {
-  const engine = React.useContext(EngineContext);
-
-  React.useEffect(() => {
-    World.add(engine.world, body.current);
-  }, [body, engine.world]);
-}
+import { Engine, Bodies } from "matter-js";
+import {
+  BodyContext,
+  useRegisterBody,
+  EngineContext,
+  useBodyContext,
+} from "../framework";
 
 const verticesToPoints = (vertices: Matter.Vector[]): [number, number][] => {
   return vertices.map((vector) => [vector.x, vector.y]);
@@ -34,12 +13,9 @@ const verticesToPoints = (vertices: Matter.Vector[]): [number, number][] => {
 
 const Box = ({ x, y }: { x: number; y: number }) => {
   React.useContext(BodyContext);
-
-  const box = React.useRef(Bodies.rectangle(x, y, 80, 80));
-  useRegisterBody(box);
+  const box = useRegisterBody(Bodies.rectangle(x, y, 80, 80));
 
   const points = verticesToPoints(box.current.vertices);
-
   return (
     <polygon
       stroke="black"
@@ -52,8 +28,7 @@ const Box = ({ x, y }: { x: number; y: number }) => {
 
 const Ball = ({ x, y, radius }: { x: number; y: number; radius: number }) => {
   React.useContext(BodyContext);
-  const ball = React.useRef(Bodies.circle(x, y, radius, { restitution: 1 }));
-  useRegisterBody(ball);
+  const ball = useRegisterBody(Bodies.circle(x, y, radius, { restitution: 1 }));
 
   const { position, circleRadius } = ball.current;
 
@@ -61,10 +36,9 @@ const Ball = ({ x, y, radius }: { x: number; y: number; radius: number }) => {
 };
 
 const Ground = ({ x, y }: { x: number; y: number }) => {
-  const ground = React.useRef(
+  const ground = useRegisterBody(
     Bodies.rectangle(x, y, 810, 5, { isStatic: true })
   );
-  useRegisterBody(ground);
 
   const points = verticesToPoints(ground.current.vertices);
 
@@ -106,7 +80,7 @@ const GameBodies = (props: React.PropsWithChildren<unknown>) => {
   );
 };
 
-export default function PaddleSVG(): React.ReactElement {
+export default function BoxesSVG(): React.ReactElement {
   const Height = window.innerHeight - 20;
   const Width = window.innerWidth - 10;
 
