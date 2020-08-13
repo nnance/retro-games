@@ -2,64 +2,71 @@ import React from "react";
 import { Engine, World, Bodies, Events, Composite } from "matter-js";
 
 const EngineContext = React.createContext(Engine.create());
+const BodyContext = React.createContext<
+  [Matter.Body[], React.Dispatch<React.SetStateAction<Matter.Body[]>>]
+>([[], () => undefined]);
 
-const Box = ({ x, y }: { x: number; y: number }) => {
+const useBodyContext = () => {
   const engine = React.useContext(EngineContext);
-  const [box] = React.useState(Bodies.rectangle(x, y, 80, 80));
-
-  React.useEffect(() => {
-    World.add(engine.world, box);
-  }, [box, engine.world]);
-
-  return null;
-};
-
-const Ball = ({ x, y, radius }: { x: number; y: number, radius: number }) => {
-  const engine = React.useContext(EngineContext);
-  const [ball, setBall] = React.useState({id: 0, x, y, radius});
-
-  React.useEffect(() => {
-    const body = Bodies.circle(x, y, radius, { restitution: 1 });
-    setBall(ball => ({...ball, id: body.id}));
-    World.add(engine.world, body);
-  }, [engine.world, radius, x, y]);
+  const [, setBodies] = React.useContext(BodyContext);
 
   React.useEffect(() => {
     const afterUpdate = () => {
-      const body = Composite.allBodies(engine.world).find(body => body.id === ball.id);
-      if (body) setBall({...ball, x: body.position.x, y: body.position.y})
+      setBodies(Composite.allBodies(engine.world));
     };
-  
+
     Events.on(engine, "afterUpdate", afterUpdate);
     return () => Events.off(engine, "afterUpdate", afterUpdate);
-  }, [ball, engine]);
+  }, [engine, setBodies]);
+};
+
+const useRegisterBody = (body: React.MutableRefObject<Matter.Body>) => {
+  const engine = React.useContext(EngineContext);
+
+  React.useEffect(() => {
+    World.add(engine.world, body.current);
+  }, [body, engine.world]);
+}
+
+const verticesToPoints = (vertices: Matter.Vector[]): [number, number][] => {
+  return vertices.map((vector) => [vector.x, vector.y]);
+};
+
+const Box = ({ x, y }: { x: number; y: number }) => {
+  React.useContext(BodyContext);
+
+  const box = React.useRef(Bodies.rectangle(x, y, 80, 80));
+  useRegisterBody(box);
+
+  const points = verticesToPoints(box.current.vertices);
 
   return (
-    <circle
-      cx={ball.x}
-      cy={ball.y}
-      r={ball.radius}
-      fill="red"
+    <polygon
+      stroke="black"
+      fill="none"
+      strokeWidth="1"
+      points={points.toString()}
     />
   );
 };
 
+const Ball = ({ x, y, radius }: { x: number; y: number; radius: number }) => {
+  React.useContext(BodyContext);
+  const ball = React.useRef(Bodies.circle(x, y, radius, { restitution: 1 }));
+  useRegisterBody(ball);
+
+  const { position, circleRadius } = ball.current;
+
+  return <circle cx={position.x} cy={position.y} r={circleRadius} fill="red" />;
+};
+
 const Ground = ({ x, y }: { x: number; y: number }) => {
-  const engine = React.useContext(EngineContext);
-  const [ground] = React.useState(
+  const ground = React.useRef(
     Bodies.rectangle(x, y, 810, 5, { isStatic: true })
   );
+  useRegisterBody(ground);
 
-  React.useEffect(() => {
-    World.add(engine.world, ground);
-  }, [ground, engine.world]);
-
-  const points = [
-    [x - 405, y],
-    [x - 405, y + 5],
-    [x + 405, y + 5],
-    [x + 405, y],
-  ];
+  const points = verticesToPoints(ground.current.vertices);
 
   return (
     <polygon
@@ -76,6 +83,7 @@ function Board(
 ): React.ReactElement {
   // create an engine
   const engine = React.useContext(EngineContext);
+  useBodyContext();
 
   React.useEffect(() => {
     // run the engine
@@ -89,18 +97,29 @@ function Board(
   );
 }
 
+const GameBodies = (props: React.PropsWithChildren<unknown>) => {
+  const bodyState = React.useState<Matter.Body[]>([]);
+  return (
+    <BodyContext.Provider value={bodyState}>
+      {props.children}
+    </BodyContext.Provider>
+  );
+};
+
 export default function PaddleSVG(): React.ReactElement {
   const Height = window.innerHeight - 20;
   const Width = window.innerWidth - 10;
 
   return (
     <EngineContext.Provider value={Engine.create()}>
-      <Board width={Width} height={Height}>
-        <Ground x={400} y={600} />
-        {/* <Box x={500} y={200} />
-        <Box x={550} y={50} /> */}
-        <Ball x={580} y={10} radius={20} />
-      </Board>
+      <GameBodies>
+        <Board width={Width} height={Height}>
+          <Ground x={400} y={600} />
+          <Box x={500} y={200} />
+          <Box x={550} y={50} />
+          <Ball x={580} y={10} radius={20} />
+        </Board>
+      </GameBodies>
     </EngineContext.Provider>
   );
 }
