@@ -1,14 +1,8 @@
 import React from "react";
-import Matter from "matter-js";
+import { Engine, Render, World, Bodies } from "matter-js";
 
 export default function Boxes(): React.ReactElement {
   const divRef = React.useRef<HTMLDivElement>(null);
-
-  // module aliases
-  const Engine = Matter.Engine,
-    Render = Matter.Render,
-    World = Matter.World,
-    Bodies = Matter.Bodies;
 
   // create an engine
   const engine = Engine.create();
@@ -16,7 +10,7 @@ export default function Boxes(): React.ReactElement {
   // create two boxes and a ground
   const boxA = Bodies.rectangle(500, 200, 80, 80);
   const boxB = Bodies.rectangle(550, 50, 80, 80);
-  const ball = Bodies.circle(580,10,20, {restitution: 1});
+  const ball = Bodies.circle(580, 10, 20, { restitution: 1 });
   const rightWall = Bodies.rectangle(800, 0, 5, 1200, { isStatic: true });
   const ground = Bodies.rectangle(400, 600, 810, 5, { isStatic: true });
 
@@ -35,7 +29,7 @@ export default function Boxes(): React.ReactElement {
 
     // run the renderer
     Render.run(render);
-  }, [divRef, Engine, Render, engine]);
+  }, [divRef, engine]);
 
   return <div ref={divRef} />;
 }

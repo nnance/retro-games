@@ -40,7 +40,7 @@ function Board(props: React.PropsWithChildren<unknown>): React.ReactElement {
   return <div ref={divRef}>{props.children}</div>;
 }
 
-export default function MatterContext(): React.ReactElement {
+export default function BoxesContext(): React.ReactElement {
   return (
     <EngineContext.Provider value={Engine.create()}>
       <Board>
