@@ -1,58 +1,60 @@
-import { Entity, Component, idFactory } from "../engine";
-import { atom, useSetRecoilState, selectorFamily, SetterOrUpdater } from "recoil";
 import React from "react";
+import { atom, useSetRecoilState, selectorFamily, useRecoilValue } from "recoil";
+import { Engine, World, Composite, Events } from "matter-js";
 
-type TypeChecker = (obj: Component) => obj is Component;
-
-export const entityListState = atom<Entity[]>({
-  key: "entityListState",
-  default: [],
+export const engineState = atom({
+  key: "engineState",
+  default: Engine.create(),
 });
 
-export const componentList = atom<Component[]>({
-  key: "componentList",
-  default: [],
-});
-
-export const useRegisterEntity = (family: string): Entity => {
-  const setEntities = useSetRecoilState(entityListState);
-  const entity = React.useRef<Entity>({
-    id: idFactory(),
-    family,
-  });
-
-  React.useEffect(() => {
-    setEntities((cur) => [...cur, entity.current]);
-  }, [entity, setEntities]);
-
-  return entity.current;
+export type Body = {
+  id: number;
+  position: Matter.Vector;
+  points: [number, number][];
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const traitSelector = <T extends Component>(
-  key: string,
-  checker: TypeChecker
-) =>
-  selectorFamily<T | undefined, number>({
-    key,
-    get: (id) => ({ get }) =>
-      get(componentList).find(
-        (component) => checker(component) && component.entity.id === id
-      ) as T,
-    set: (id) => ({ set }, newValue) =>
-      set(componentList, (prev) =>
-        prev.map((component) =>
-          checker(component) && component.entity.id === id ? newValue : component
-        )
-      ),
-  });
+export const bodyList = atom<Body[]>({
+  key: "bodyList",
+  default: [],
+});
 
-export const registerState = (
-  component: Component,
-  checker: TypeChecker,
-  state: [Component[], SetterOrUpdater<Component[]>]
-) => (): void => {
-  const [components, setComponents] = state;
-  const current = components.find((_) => checker(_) && _.entity === component.entity);
-  if (!current) setComponents((cur) => [...cur, component]);
+export const bodySelector = selectorFamily({
+  key: "bodySelector",
+  get: (id) => ({ get }) => {
+    return get(bodyList).find((body) => body.id === id);
+  },
+});
+
+export const useRegisterBody = (
+  body: Matter.Body
+): React.MutableRefObject<Matter.Body> => {
+  const engine = useRecoilValue(engineState);
+  const ref = React.useRef(body);
+
+  React.useEffect(() => {
+    World.add(engine.world, ref.current);
+  }, [engine.world, ref]);
+
+  return ref;
+};
+
+export const useBodyContext = (): void => {
+  const engine = useRecoilValue(engineState);
+  const setBodies = useSetRecoilState(bodyList);
+
+  React.useEffect(() => {
+    const afterUpdate = () => {
+      const bodies = Composite.allBodies(engine.world);
+      setBodies(
+        bodies.map((body) => ({
+          id: body.id,
+          position: { ...body.position },
+          points: body.vertices.map((vector) => [vector.x, vector.y]),
+        }))
+      );
+    };
+
+    Events.on(engine, "afterUpdate", afterUpdate);
+    return () => Events.off(engine, "afterUpdate", afterUpdate);
+  }, [engine, setBodies]);
 };

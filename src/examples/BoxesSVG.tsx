@@ -5,7 +5,7 @@ import {
   useRegisterBody,
   EngineContext,
   useBodyContext,
-} from "../framework";
+} from "../framework/context";
 
 const verticesToPoints = (vertices: Matter.Vector[]): [number, number][] => {
   return vertices.map((vector) => [vector.x, vector.y]);

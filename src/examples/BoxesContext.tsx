@@ -1,6 +1,6 @@
 import React from "react";
 import { Engine, Render, Bodies } from "matter-js";
-import { useRegisterBody, EngineContext } from "../framework";
+import { useRegisterBody, EngineContext } from "../framework/context";
 
 const Box = ({ x, y }: { x: number; y: number }) => {
   useRegisterBody(Bodies.rectangle(x, y, 80, 80));
