@@ -9,28 +9,44 @@ const brickSize = { width: 60, height: 20 };
 const rows = 2;
 const cols = 7;
 
-const Brick = ({ col, row }: { col: number; row: number }) => {
+const Brick = ({ body }: { body: Matter.Body }) => {
+  const bodyState = useRegisterBody(body);
+  return <polygon stroke="grey" points={bodyState?.points?.toString()} />;
+};
+
+const brickFactory = (col: number, row: number) => {
   const { width, height } = brickSize;
-  const body = useRegisterBody(
-    Bodies.rectangle(200 + width * col, 150 + row * height, width, height, {
+  return Bodies.rectangle(
+    200 + width * col,
+    150 + row * height,
+    width,
+    height,
+    {
       isStatic: true,
-      label: "brick",
-    })
+    }
   );
-  return <polygon stroke="grey" points={body?.points?.toString()} />;
 };
 
 const Grid = () => {
   const engine = useRecoilValue(engineState);
+  const bricksRef = React.useRef(
+    Array.from(Array(rows), (_, row) =>
+      Array.from(Array(cols), (_, col) => brickFactory(col, row))
+    )
+  );
 
+  // remove brick the ball hits any of the bricks in the grid
   React.useEffect(() => {
     const callback = (events: Matter.IEventCollision<Engine>) => {
       const pairs = events.pairs;
+      const bricks = bricksRef.current.flat();
+
       pairs.forEach((pair) => {
-        if (pair.bodyA.label === "brick")
-          World.remove(engine.world, pair.bodyA);
-        if (pair.bodyB.label === "brick")
-          World.remove(engine.world, pair.bodyB);
+        const bodyA = bricks.find((brick) => brick.id === pair.bodyA.id);
+        const bodyB = bricks.find((brick) => brick.id === pair.bodyB.id);
+
+        if (bodyA) World.remove(engine.world, pair.bodyA);
+        if (bodyB) World.remove(engine.world, pair.bodyB);
       });
     };
 
@@ -40,11 +56,9 @@ const Grid = () => {
 
   return (
     <Fragment>
-      {Array.from(Array(rows), (_, row) => {
-        return Array.from(Array(cols), (_, col) => {
-          return <Brick key={row * col} col={col} row={row} />;
-        });
-      })}
+      {bricksRef.current.flat().map((brick) => (
+        <Brick body={brick} />
+      ))}
     </Fragment>
   );
 };
