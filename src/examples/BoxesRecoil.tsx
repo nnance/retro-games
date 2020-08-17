@@ -1,27 +1,15 @@
 import React from "react";
 import { Engine, Bodies } from "matter-js";
 import { useRecoilValue, RecoilRoot } from "recoil";
-import {
-  useRegisterBody,
-  bodySelector,
-  engineState,
-  useBodyContext,
-} from "../framework";
+import { useRegisterBody, engineState, useBodyContext } from "../framework";
 
 const Box = ({ x, y }: { x: number; y: number }) => {
-  const bodyRef = useRegisterBody(Bodies.rectangle(x, y, 80, 80));
-  const body = useRecoilValue(bodySelector(bodyRef.current.id));
-
+  const body = useRegisterBody(Bodies.rectangle(x, y, 80, 80));
   return <polygon stroke="grey" points={body?.points?.toString()} />;
 };
 
 const Ball = ({ x, y, radius }: { x: number; y: number; radius: number }) => {
-  const bodyRef = useRegisterBody(
-    Bodies.circle(x, y, radius, { restitution: 1 })
-  );
-
-  const body = useRecoilValue(bodySelector(bodyRef.current.id));
-
+  const body = useRegisterBody(Bodies.circle(x, y, radius, { restitution: 1 }));
   return (
     <circle
       cx={body?.position?.x}
@@ -33,12 +21,9 @@ const Ball = ({ x, y, radius }: { x: number; y: number; radius: number }) => {
 };
 
 const Ground = ({ x, y }: { x: number; y: number }) => {
-  const bodyRef = useRegisterBody(
+  const body = useRegisterBody(
     Bodies.rectangle(x, y, 810, 5, { isStatic: true })
   );
-
-  const body = useRecoilValue(bodySelector(bodyRef.current.id));
-
   return <polygon stroke="grey" points={body?.points?.toString()} />;
 };
 

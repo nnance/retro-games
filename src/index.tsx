@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import Example from "./examples/BoxesRecoil";
+import Example from "./examples/PaddleRecoil";
 
 ReactDOM.render(
   <React.StrictMode>

@@ -27,7 +27,7 @@ const buildGrid = (rows: number, cols: number): Matter.Body[] => {
   return buildRows(rows);
 };
 
-export default function Boxes(): React.ReactElement {
+export default function Paddle(): React.ReactElement {
   const divRef = React.useRef<HTMLDivElement>(null);
   const [paddleVelocity, setVelocity] = React.useState(0);
   const engineRef = React.useRef(Engine.create());

@@ -27,7 +27,7 @@ export const bodySelector = selectorFamily({
 
 export const useRegisterBody = (
   body: Matter.Body
-): React.MutableRefObject<Matter.Body> => {
+): Body | undefined => {
   const engine = useRecoilValue(engineState);
   const ref = React.useRef(body);
 
@@ -35,7 +35,7 @@ export const useRegisterBody = (
     World.add(engine.world, ref.current);
   }, [engine.world, ref]);
 
-  return ref;
+  return useRecoilValue(bodySelector(ref.current.id));
 };
 
 export const useBodyContext = (): void => {
