@@ -6,10 +6,10 @@ export type GameControls = {
   upArrow?: () => void;
   rightArrow?: () => void;
   downArrow?: () => void;
-  keyUp?: () => void;
+  keyUp?: (keyCode?: number) => void;
 };
 
-enum KeyCode {
+export enum KeyCode {
   spaceBar = 32,
   leftArrow = 37,
   upArrow = 38,
@@ -18,8 +18,6 @@ enum KeyCode {
 }
 
 export const useGameControls = (actions: GameControls): void => {
-  const [state, setState] = React.useState(0);
-
   const handler = React.useCallback(
     ({ keyCode }: KeyboardEvent): void => {
       if (keyCode === KeyCode.upArrow && actions.upArrow) actions.upArrow();
@@ -31,26 +29,21 @@ export const useGameControls = (actions: GameControls): void => {
         actions.downArrow();
       else if (keyCode === KeyCode.spaceBar && actions.spaceBar)
         actions.spaceBar();
-      setState(keyCode);
     },
     [actions]
   );
 
   const downHandler = React.useCallback(
-    (e: KeyboardEvent): void => {
-      if (!actions.keyUp) {
-        handler(e);
-      } else if (state === 0) {
-        handler(e);
-      }
-    },
-    [handler, actions, state]
+    (e: KeyboardEvent): void => handler(e),
+    [handler]
   );
 
-  const upHandler = React.useCallback((): void => {
-    if (actions.keyUp) actions.keyUp();
-    setState(0);
-  }, [actions, setState]);
+  const upHandler = React.useCallback(
+    (e: KeyboardEvent): void => {
+      if (actions.keyUp) actions.keyUp(e.keyCode);
+    },
+    [actions]
+  );
 
   React.useEffect(() => {
     window.addEventListener("keydown", downHandler);
