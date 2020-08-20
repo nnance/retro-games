@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import Example from "./examples/Ship";
+import Example from "./examples/SVGPath";
 
 ReactDOM.render(
   <React.StrictMode>
